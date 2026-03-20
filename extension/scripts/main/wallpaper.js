@@ -3,8 +3,8 @@ function showDefaultWallpaper() {
 	// set wallpaper
 	var body = document.getElementById('main-body');
 	body.style.backgroundImage = "url('./images/default.png')";
-	// set download link
-	setDownloadLink();
+	// set download button
+	setDownloadBtn();
 }
 
 // set footer text
@@ -38,6 +38,8 @@ function hideLoadingAnim() {
 function loadAndChangeOnlineWallpaper(url, text) {
 	showDefaultWallpaper();
 	showLoadingAnim();
+	// use copyright text as image name for download
+	currentImageName = text;
 	// preload wallpaper
 	var tmp_img = new Image();
 	tmp_img.src = url;
@@ -52,8 +54,8 @@ function loadAndChangeOnlineWallpaper(url, text) {
   	writeConf("wallpaper_date", getDateString());
   	writeConf("wallpaper_url", url);
   	writeConf("wallpaper_text", text);
-  	// set download link
-  	setDownloadLink();
+  	// set download button
+  	setDownloadBtn();
 	};
 }
 
@@ -69,6 +71,8 @@ function updateWallpaper(idx) {
 			if (readConf('enable_uhd_wallpaper') == 'yes') {
 				url = url.replaceAll('1920x1080', 'UHD');
 			}
+			// store copyright as image name for download
+			currentImageName = obj.images[0].copyright;
 			loadAndChangeOnlineWallpaper(url, obj.images[0].copyright);
 		}
 		else {
@@ -134,11 +138,51 @@ function switchNextWallpaper() {
 	updateWallpaper(cache_idx);
 }
 
-// set wallpaper download link
-function setDownloadLink() {
-	var downloadLink = document.getElementById('wallpaper-download-link');
-	downloadLink.href = document.getElementById('main-body').style.backgroundImage.replace('url("', '').replace('")', '');
-	downloadLink.download = 'bing-wallpaper-' + getDateString();
+// store current image name for download
+var currentImageName = '';
+
+// sanitize filename for Windows compatibility
+// replace characters: < > : " / \ | ? * and control characters
+function sanitizeFilename(name) {
+	if (!name) return 'bing-wallpaper-' + getDateString();
+	// replace / with underscore to preserve structure
+	name = name.replace(/\//g, '_');
+	// decode URI components first
+	try {
+		name = decodeURIComponent(name);
+	} catch (e) {}
+	// replace invalid chars with underscore
+	name = name.replace(/[<>:"\\|?*\x00-\x1f]/g, '_').replace(/__+/g, '_').replace(/^_|_$/g, '');
+	return name.trim();
+}
+
+// fetch image as blob and trigger download with correct filename
+async function downloadWallpaper() {
+	var imgUrl = document.getElementById('main-body').style.backgroundImage.replace('url("', '').replace('")', '');
+	var safeName = sanitizeFilename(currentImageName);
+	var filename = safeName + '.jpg';
+
+	try {
+		var response = await fetch(imgUrl);
+		var blob = await response.blob();
+		var blobUrl = URL.createObjectURL(blob);
+		var a = document.createElement('a');
+		a.href = blobUrl;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(blobUrl);
+	} catch (e) {
+		// fallback: open in new tab
+		window.open(imgUrl, '_blank');
+	}
+}
+
+// set wallpaper download button
+function setDownloadBtn() {
+	var download_wp_btn = document.getElementById('download-wallpaper');
+	download_wp_btn.onclick = downloadWallpaper;
 }
 
 // --------------------------------------------------

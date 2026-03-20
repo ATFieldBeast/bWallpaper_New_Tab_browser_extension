@@ -17,7 +17,7 @@ function i18n_btr_next_wallpaper_btn() {
 
 // bottom-right download wallpaper btn 
 function i18n_btr_download_wallpaper_btn() {
-	var x = document.getElementById('wallpaper-download-link');
+	var x = document.getElementById('download-wallpaper');
 	x.title = i18n('btr_download_wallpaper_btn');
 }
 

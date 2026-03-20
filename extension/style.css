@@ -59,11 +59,10 @@ body {
 	display: none;
 }
 
-#wallpaper-download-link {
+#download-wallpaper {
 	padding-left: 8px;
+	cursor: pointer;
 	display: none;
-	text-decoration: none;
-	color: white;
 }
 
 #uhd-badge {
@@ -87,7 +86,7 @@ body {
 	display: inline-block;
 }
 
-#footer-op:hover #wallpaper-download-link {
+#footer-op:hover #download-wallpaper {
 	display: inline-block;
 }
 
